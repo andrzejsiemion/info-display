@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN pip install --upgrade pip \
-    && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO
+    && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO lgpio
 
 # Stage 2: Final minimal image
 FROM python:3.11-slim
@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     python3-smbus \
     libgpiod2 \
     i2c-tools \
+    python3-lgpio \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only necessary files from builder stage
