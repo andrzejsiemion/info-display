@@ -9,7 +9,7 @@ WIDTH = 128
 HEIGHT = 64  # Change to 32 if using a 128x32 display
 
 # Initialize I2C communication (for Raspberry Pi, use bus 1)
-i2c = busio.I2C(board.SCL, board.SDA, bus_id=1)
+i2c = busio.I2C(board.SCL, board.SDA)
 
 # Initialize OLED display
 oled = adafruit_ssd1306.SSD1306_I2C(WIDTH, HEIGHT, i2c)
