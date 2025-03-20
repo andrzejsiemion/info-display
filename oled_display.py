@@ -26,7 +26,7 @@ draw = ImageDraw.Draw(image)
 font = ImageFont.load_default()
 
 # Display text
-text = "Hello, World!"
+text = "Hello, World!\nThis is a test."
 draw.text((10, 25), text, font=font, fill=255)
 
 # Show image on the display
