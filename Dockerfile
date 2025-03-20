@@ -1,21 +1,30 @@
-# Use a Raspberry Pi-compatible base image
-FROM python:3.11-slim
+# Stage 1: Build dependencies
+FROM python:3.11 AS builder
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Install required system packages
+# Install dependencies
+RUN pip install --upgrade pip \
+    && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO
+
+# Stage 2: Final minimal image
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install required system dependencies
 RUN apt-get update && apt-get install -y \
-    python3-pip \
     python3-smbus \
     libgpiod2 \
     i2c-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# Install required Python libraries (RPi.GPIO via pip)
-RUN pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO
+# Copy only necessary files from builder stage
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 
-# Copy the script to the container
+# Copy script into container
 COPY oled_display.py /app/oled_display.py
 
 # Set the command to run the script
