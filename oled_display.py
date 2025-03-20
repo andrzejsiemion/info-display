@@ -2,6 +2,8 @@ import time
 import board
 import busio
 import socket
+import signal
+import sys
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
 
@@ -25,6 +27,21 @@ def get_ip_address():
     except Exception:
         ip_address = "No IP"
     return ip_address
+
+def clear_display():
+    """Clears the OLED display."""
+    oled.fill(0)
+    oled.show()
+
+def signal_handler(sig, frame):
+    """Handles termination signals to clear the display on exit."""
+    print("\nStopping... Clearing OLED display.")
+    clear_display()
+    sys.exit(0)
+
+# Register signal handlers for graceful exit
+signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
+signal.signal(signal.SIGTERM, signal_handler)  # Handle Docker stop
 
 while True:
     # Get IP address
