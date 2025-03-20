@@ -4,7 +4,7 @@ FROM python:3.11 AS builder
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
+# Install required Python libraries (including lgpio via pip)
 RUN pip install --upgrade pip \
     && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO lgpio
 
@@ -14,12 +14,11 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install required system dependencies
+# Install required system dependencies (without python3-lgpio)
 RUN apt-get update && apt-get install -y \
     python3-smbus \
     libgpiod2 \
     i2c-tools \
-    python3-lgpio \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only necessary files from builder stage
