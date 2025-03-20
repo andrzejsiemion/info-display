@@ -7,12 +7,14 @@ WORKDIR /app
 # Install required system packages
 RUN apt-get update && apt-get install -y \
     python3-pip \
+    python3-rpi.gpio \
+    python3-smbus \
     libgpiod2 \
     i2c-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python libraries
-RUN pip install adafruit-circuitpython-ssd1306 pillow
+RUN pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO
 
 # Copy the script to the container
 COPY oled_display.py /app/oled_display.py
