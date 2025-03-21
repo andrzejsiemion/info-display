@@ -43,31 +43,37 @@ client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG)
 query_api = client.query_api()
 
 # === Main Loop ===
-while True:
-    query = f'''
-    from(bucket: "{BUCKET}")
-      |> range(start: -5m)
-      |> filter(fn: (r) => r._measurement == "{MEASUREMENT}")
-      |> filter(fn: (r) => r._field == "{FIELD}")
-      |> filter(fn: (r) => r.sensor_id == "{SENSOR_ID}")
-      |> last()
-    '''
+from datetime import datetime
 
+# Main loop
+while True:
     try:
         result = query_api.query(org=ORG, query=query)
         if result and len(result[0].records) > 0:
-            value = result[0].records[0].get_value()
-            text = f"{FIELD.capitalize()}: {value:.1f}"
+            record = result[0].records[0]
+            humidity = record.get_value()
+            timestamp = record.get_time().astimezone().strftime("%Y-%m-%d %H:%M:%S")
+            sensor_id = record.values.get("sensor_id", "unknown")
+
+            line1 = f"{timestamp} {sensor_id}"
+            line2 = f"Hum: {humidity:.1f}%"
         else:
-            text = "No data"
+            line1 = "No data"
+            line2 = ""
     except Exception as e:
         print(f"InfluxDB error: {e}")
-        text = "Influx error"
+        line1 = "Influx error"
+        line2 = ""
 
-    # Draw and show the text
+    # Create image buffer
     image = Image.new("1", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(image)
-    draw.text((10, 25), text, font=font, fill=255)
+
+    # Draw text lines
+    draw.text((0, 15), line1, font=font, fill=255)
+    draw.text((0, 35), line2, font=font, fill=255)
+
+    # Update display
     oled.image(image)
     oled.show()
 
