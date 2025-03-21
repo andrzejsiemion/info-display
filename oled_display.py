@@ -67,7 +67,7 @@ while True:
         if temp_result and len(temp_result[0].records) > 0:
             record = temp_result[0].records[0]
             temp_val = record.get_value()
-            timestamp = record.get_time().astimezone().strftime("%y-%m-%d %H:%M")
+            timestamp = record.get_time().astimezone().strftime("%y-%m-%d %H:%M:%S")
             sensor_id = record.values.get("sensor_id", "unknown")
 
         # Fetch humidity
@@ -91,9 +91,9 @@ while True:
     # Draw to OLED
     image = Image.new("1", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(image)
-    draw.text((0, 15), line1, font=font, fill=255)
-    draw.text((0, 35), line2, font=font, fill=255)
+    draw.text((0, 0), line1, font=font, fill=255)
+    draw.text((0, 20), line2, font=font, fill=255)
     oled.image(image)
     oled.show()
 
-    time.sleep(60)
+    time.sleep(10)
