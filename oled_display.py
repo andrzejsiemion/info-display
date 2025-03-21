@@ -4,6 +4,7 @@ import signal
 import sys
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+import pytz
 
 import board
 import busio
@@ -41,6 +42,9 @@ SENSOR_ID = os.getenv("INFLUXDB_SENSOR_ID1", "")
 FIELD_HUMIDITY = os.getenv("INFLUXDB_FIELD_HUMIDITY", "humidity")
 FIELD_TEMPERATURE = os.getenv("INFLUXDB_FIELD_TEMPERATURE", "temperature")
 
+tz_name = os.getenv("TZ", "UTC")
+LOCAL_TZ = pytz.timezone(tz_name)
+
 client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG)
 query_api = client.query_api()
 
@@ -67,7 +71,7 @@ while True:
         if temp_result and len(temp_result[0].records) > 0:
             record = temp_result[0].records[0]
             temp_val = record.get_value()
-            timestamp = record.get_time().astimezone().strftime("%y-%m-%d %H:%M:%S")
+            timestamp = record.get_time().astimezone(LOCAL_TZ).strftime("%y-%m-%d %H:%M:%S")
             sensor_id = record.values.get("sensor_id", "unknown")
 
         # Fetch humidity
