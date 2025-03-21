@@ -97,7 +97,8 @@ while True:
                 field = record.get_field()
                 if field == FIELD_TEMPERATURE:
                     temp_val = record.get_value()
-                    timestamp = record.get_time().astimezone(LOCAL_TZ).strftime("%y-%m-%d %H:%M")
+                    timestamp = record.get_time().astimezone(LOCAL_TZ).strftime("%y-%m-%d %H:%M:%S")
+                    logger.debug("timestamp: {timestamp}")
                 elif field == FIELD_HUMIDITY:
                     hum_val = record.get_value()
 
