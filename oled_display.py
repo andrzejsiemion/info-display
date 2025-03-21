@@ -55,7 +55,7 @@ while True:
     font = ImageFont.load_default()
 
     # Display IP address
-    draw.text((10, 25), f"IP: {ip}", font=font, fill=255)
+    draw.text((10, 25), f"Hello\nIP: {ip}", font=font, fill=255)
 
     # Show image on the display
     oled.image(image)
