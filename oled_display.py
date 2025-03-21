@@ -5,12 +5,31 @@ import sys
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import pytz
+from loguru import logger
 
 import board
 import busio
 import adafruit_ssd1306
 
 from influxdb_client import InfluxDBClient
+
+logger.remove() # Remove default Loguru Handler
+logger.add(
+    sys.stdout, 
+    format="[{time:HH:mm:ss}] {level}: {message}", 
+    level="INFO"
+    )
+
+log_file_path = "/app/logs/logger_screen.log"
+
+logger.add(
+    log_file_path, 
+    format="[{time:YYYY-MM-DD HH:mm:ss}] {level}: {message}",
+    level="INFO", 
+    rotation="10MB"
+    )
+
+logger.info("Starting info screen logger...")  # Debugging message
 
 # === OLED Display Setup ===
 WIDTH = 128
@@ -24,7 +43,7 @@ def clear_display():
     oled.show()
 
 def signal_handler(sig, frame):
-    print("Stopping. Clearing display.")
+    logger.info("Stopping. Clearing display.")
     clear_display()
     sys.exit(0)
 
@@ -90,7 +109,7 @@ while True:
                 lines.append("")
 
     except Exception as e:
-        print(f"InfluxDB error: {e}")
+        logger.info(f"InfluxDB error: {e}")
         lines = ["Influx error", ""]
 
     # Draw to OLED
