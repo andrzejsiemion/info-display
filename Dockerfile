@@ -27,5 +27,10 @@ COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 # Copy script into container
 COPY oled_display.py /app/oled_display.py
 
+RUN mkdir -p /app/display
+
+COPY up.txt /app/display/up.txt
+COPY down.txt /app/display/down.txt
+
 # Set the command to run the script
 CMD ["python3", "/app/oled_display.py"]
