@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install required Python libraries (including lgpio via pip)
 RUN pip install --upgrade pip \
-    && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO lgpio
+    && pip install adafruit-circuitpython-ssd1306 pillow adafruit-blinka RPi.GPIO lgpio influxdb-client
 
 # Stage 2: Final minimal image
 FROM python:3.11-slim

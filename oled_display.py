@@ -1,65 +1,74 @@
 import time
+import os
 import board
 import busio
-import socket
 import signal
 import sys
+import socket
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
+from influxdb_client import InfluxDBClient
 
-# OLED display settings
+# === OLED Setup ===
 WIDTH = 128
-HEIGHT = 64  # Change to 32 if using a 128x32 display
-
-# Initialize I2C communication
+HEIGHT = 64
 i2c = busio.I2C(board.SCL, board.SDA)
-
-# Initialize OLED display
 oled = adafruit_ssd1306.SSD1306_I2C(WIDTH, HEIGHT, i2c)
-
-def get_ip_address():
-    """Returns the IP address of the Raspberry Pi."""
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # Connects to Google DNS to determine network interface
-        ip_address = s.getsockname()[0]
-        s.close()
-    except Exception:
-        ip_address = "No IP"
-    return ip_address
+font = ImageFont.load_default()
 
 def clear_display():
-    """Clears the OLED display."""
     oled.fill(0)
     oled.show()
 
 def signal_handler(sig, frame):
-    """Handles termination signals to clear the display on exit."""
-    print("\nStopping... Clearing OLED display.")
+    print("Stopping. Clearing display.")
     clear_display()
     sys.exit(0)
 
-# Register signal handlers for graceful exit
-signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
-signal.signal(signal.SIGTERM, signal_handler)  # Handle Docker stop
+# Handle termination signals
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
+# === InfluxDB Config from Environment ===
+INFLUX_URL = os.getenv("INFLUXDB_URL", "http://localhost:8086")
+INFLUX_TOKEN = os.getenv("INFLUXDB_TOKEN", "")
+ORG = os.getenv("INFLUXDB_ORG", "")
+BUCKET = os.getenv("INFLUXDB_BUCKET", "")
+MEASUREMENT = os.getenv("INFLUXDB_MEASUREMENT", "")
+FIELD = os.getenv("INFLUXDB_FIELD", "")
+SENSOR_ID = os.getenv("INFLUXDB_SENSOR_ID", "")
+
+# === InfluxDB Client ===
+client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG)
+query_api = client.query_api()
+
+# === Main Loop ===
 while True:
-    # Get IP address
-    ip = get_ip_address()
-    
-    # Create an image buffer
+    query = f'''
+    from(bucket: "{BUCKET}")
+      |> range(start: -5m)
+      |> filter(fn: (r) => r._measurement == "{MEASUREMENT}")
+      |> filter(fn: (r) => r._field == "{FIELD}")
+      |> filter(fn: (r) => r.sensor_id == "{SENSOR_ID}")
+      |> last()
+    '''
+
+    try:
+        result = query_api.query(org=ORG, query=query)
+        if result and len(result[0].records) > 0:
+            value = result[0].records[0].get_value()
+            text = f"{FIELD.capitalize()}: {value:.1f}"
+        else:
+            text = "No data"
+    except Exception as e:
+        print(f"InfluxDB error: {e}")
+        text = "Influx error"
+
+    # Draw and show the text
     image = Image.new("1", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(image)
-
-    # Load a font
-    font = ImageFont.load_default()
-
-    # Display IP address
-    draw.text((10, 25), f"Hello\nIP: {ip}", font=font, fill=255)
-
-    # Show image on the display
+    draw.text((10, 25), text, font=font, fill=255)
     oled.image(image)
     oled.show()
 
-    # Wait for 1 minute before refreshing
     time.sleep(60)
